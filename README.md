@@ -1,1 +1,3 @@
-rust-course
+# Rust
+
+Learning The Rust Programming Language
