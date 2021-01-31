@@ -27,22 +27,28 @@ impl Server {
 
 					let mut buffer = [0; 4096];
 					match stream.read(&mut buffer) {
-						Ok(size) => {
-							println!(
-								"Received a request ({}): {:?}",
-								size,
-								String::from_utf8_lossy(&buffer)
-							);
+						Ok(_size) => {
+							// println!(
+							// 	"Received a request ({}): {:?}",
+							// 	size,
+							// 	String::from_utf8_lossy(&buffer)
+							// );
 
-							Request::try_from(&buffer[..]);
+							match Request::try_from(&buffer[..]) {
+								Ok(request) => {
+									dbg! (request);
+								}
+
+								Err(e) => println!("Failed to parse request: {:?}", e)
+							}
 						},
 						Err(e) => {
-							println!("failed to read from connection: {:?}", e)
+							println!("Failed to read from connection: {:?}", e)
 						}
 					}
 				},
 
-				Err(e) => println!("couldn't get client: {:?}", e)
+				Err(e) => println!("Failed to establish connection: {:?}", e)
 			}
 		}
 	}

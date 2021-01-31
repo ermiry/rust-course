@@ -5,10 +5,12 @@ use std::error::Error;
 use std::convert::TryFrom;
 
 use super::method::{ Method, MethodError };
+use super::{ QueryString };
 
-pub struct Request {
-	path: String,
-	query: Option <String>,
+#[derive(Debug)]
+pub struct Request <'buf> {
+	path: &'buf str,
+	query: Option <QueryString <'buf>>,
 	method: Method
 }
 
@@ -56,10 +58,10 @@ impl From <MethodError> for ParseError {
 
 impl Error for ParseError {}
 
-impl TryFrom <&[u8]> for Request {
+impl <'buf> TryFrom <&'buf [u8]> for Request <'buf> {
 	type Error = ParseError;
 
-	fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
+	fn try_from(buf: &'buf [u8]) -> Result<Request <'buf>, Self::Error> {
 		// this works because we added an Utf8Error impl for ParseError
 		let request = str::from_utf8(buf)?;
 
@@ -83,12 +85,15 @@ impl TryFrom <&[u8]> for Request {
 
 		let mut query_string = None;
 		if let Some (i) = path.find('?') {
-			query_string = Some(&path[i + 1..]);
+			query_string = Some(QueryString::from(&path[i + 1..]));
 			path = &path[..i];
 		}
 
-		// FIXME:
-		return Err(ParseError::InvalidRequest);
+		Ok(Self {
+			path: path,
+			query: query_string,
+			method
+		})
 	}
 }
 
