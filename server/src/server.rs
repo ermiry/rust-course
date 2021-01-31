@@ -1,8 +1,8 @@
-use std::io::Read;
+use std::io::{ Read };
 use std::convert::TryFrom;
 use std::net::TcpListener;
 
-use crate::http::Request;
+use crate::http::{ Request, Response, StatusCode };
 
 pub struct Server {
 	address: String
@@ -34,21 +34,35 @@ impl Server {
 							// 	String::from_utf8_lossy(&buffer)
 							// );
 
-							match Request::try_from(&buffer[..]) {
+							let response = match Request::try_from(&buffer[..]) {
 								Ok(request) => {
 									dbg! (request);
+
+									Response::new(StatusCode::Ok, None)
+
+									// this will use the Display impl and
+									// allocate a new string before sending through the socket
+									// write! (stream, "{}", res);
 								}
 
-								Err(e) => println!("Failed to parse request: {:?}", e)
+								Err(e) => {
+									println!("Failed to parse request: {:?}", e);
+									Response::new(StatusCode::BadRequest, None)
+								}
+							};
+
+							// send directly through the stream
+							if let Err(e) = response.send(&mut stream) {
+								println! ("Failed to send response: {}", e);
 							}
 						},
 						Err(e) => {
-							println!("Failed to read from connection: {:?}", e)
+							println! ("Failed to read from connection: {:?}", e)
 						}
 					}
 				},
 
-				Err(e) => println!("Failed to establish connection: {:?}", e)
+				Err(e) => println! ("Failed to establish connection: {:?}", e)
 			}
 		}
 	}
