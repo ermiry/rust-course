@@ -1,6 +1,5 @@
 use std::fmt::{ Display, Formatter, Result as FmtResult };
 use std::io::{ Write, Result as IOResult };
-use std::net::TcpStream;
 
 use super::status::StatusCode;
 
@@ -17,7 +16,7 @@ impl Response {
 
 	// with this we are writting directly to the stream
 	// so n additional allocations are needed
-	pub fn send(&self, stream: &mut TcpStream) -> IOResult <()> {
+	pub fn send(&self, stream: &mut impl Write) -> IOResult <()> {
 		let body = match &self.body {
 			Some (b) => b,
 			None => ""
